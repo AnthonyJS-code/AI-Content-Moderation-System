@@ -1,5 +1,5 @@
 const OpenAI = require("openai");
-const contentCollection = require("../models/contents.models")
+const contentCollection = require("../models/contents.models");
 // const dotenv = require("dotenv");
 // dotenv.config();
 module.exports = async (data) => {
@@ -28,16 +28,22 @@ module.exports = async (data) => {
       model: "tngtech/deepseek-r1t2-chimera:free",
       messages: [{ role: "user", content: messagePrompt }],
     });
-    let processedInput = completion.choices[0].message.content
-    processedInputvalue = {processedInput:processedInput}
+    let processedInput = completion.choices[0].message.content;
+    processedInputvalue = { processedInput: processedInput };
     newContents = new contentCollection({
-      content:data,
-      AIResultsDetails:processedInput
-    })
-    await newContents.save()
+      content: data,
+      AIResultsDetails: processedInput,
+    });
+    await newContents.save();
     return messagePrompt;
   } catch (e) {
-      processedInputvalue = {error:"An error occured, Try again in about 2 minutes"}
+    if (e.code === 11000 && e.name === "MongoServerError") {
+      processedInputvalue = { error: "Duplicate Request" };
+    } else {
+      processedInputvalue = {
+        error: "An error occured, Try again in about 2 minutes",
+      };
+    }
   }
-  return processedInputvalue
+  return processedInputvalue;
 };
